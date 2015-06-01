@@ -1,14 +1,12 @@
-FROM       alpine
+FROM       ubuntu
 MAINTAINER Johannes 'fish' Ziemke <fish@docker.com> (@discordianfish)
 
-ENV  GOPATH /go
-ENV APPPATH $GOPATH/src/github.com/docker-infra/docker-backup
-COPY . $APPPATH
-RUN apk add --update -t build-deps go git && cd $APPPATH \
-    && go get -d && go build -o /bin/docker-backup \
-    && mkdir /docker-backup \
-    && ln -s /bin/docker-backup /docker-backup/docker-backup \
-    && apk del --purge build-deps && rm -rf $GOPATH
+RUN        apt-get update && apt-get install -yq curl git mercurial gcc
+RUN        curl -s https://go.googlecode.com/files/go1.2.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+ENV        PATH    /usr/local/go/bin:$PATH
+ENV        GOPATH  /go
 
+ADD        . /docker-backup
 WORKDIR    /docker-backup
-ENTRYPOINT [ "/bin/docker-backup" ]
+RUN        go get -d && go build
+ENTRYPOINT [ "./docker-backup" ]
